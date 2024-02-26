@@ -1,29 +1,17 @@
-const path = require("path");
-const fs = require("fs");
-const solc = require("solc");
+const fs = require('fs');
+const path = require('path');
 
-const inboxPath = path.resolve(__dirname, "contracts", "Inbox.sol");
-const source = fs.readFileSync(inboxPath, "utf8");
+// Output directory
+const buildPath = path.resolve(__dirname, 'build');
+fs.rmSync(buildPath, { recursive: true, force: true });
+fs.mkdirSync(buildPath);
 
-const input = {
-    language: "Solidity",
-    sources: {
-        "Inbox.sol": {
-            content: source,
-        },
-    },
-    settings: {
-        outputSelection: {
-            "*": {
-                "*": ["*"],
-            },
-        },
-    },
-};
-
-const output = JSON.parse(solc.compile(JSON.stringify(input)));
-
-// Assuming your contract is named 'Inbox' and it's the only contract in Inbox.sol
-for (let contractName in output.contracts["Inbox.sol"]) {
-    console.log('Bytecode:', output.contracts["Inbox.sol"][contractName].evm.bytecode.object);
+for (let contract in output.contracts['Inbox.sol']) {
+    fs.writeFileSync(
+        path.resolve(buildPath, contract + '.json'),
+        JSON.stringify({
+            abi: output.contracts['Inbox.sol'][contract].abi,
+            bytecode: output.contracts['Inbox.sol'][contract].evm.bytecode.object,
+        }, null, 2) // Pretty print JSON
+    );
 }
